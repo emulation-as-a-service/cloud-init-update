@@ -1,0 +1,22 @@
+#!/bin/sh
+set -xeu
+
+while ! apt-get update; do sleep 1; done
+while ! DEBIAN_FRONTEND=noninteractive apt-get \
+  -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" \
+  dist-upgrade; do sleep 1; done
+if test -e /var/run/reboot-required; then
+ rm -f /var/lib/cloud/instance/sem/config_scripts_user
+ systemctl reboot
+ exit
+fi
+
+while ! apt-get update; do sleep 1; done
+while ! DEBIAN_FRONTEND=noninteractive apt-get \
+  -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" \
+  install unattended-upgrades; do sleep 1; done
+tee /etc/apt/apt.conf.d/52unattended-upgrades-local << EOF
+// Upgrade all packages (not only security updates)
+Unattended-Upgrade::Origins-Pattern { "origin=*"; };
+Unattended-Upgrade::Automatic-Reboot "true";
+EOF
