@@ -8,6 +8,7 @@ while ! DEBIAN_FRONTEND=noninteractive apt-get \
 if test -e /var/run/reboot-required; then
  rm -f /var/lib/cloud/instance/sem/config_scripts_user
  systemctl reboot
+ sleep inf
  exit
 fi
 
